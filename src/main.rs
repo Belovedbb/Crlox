@@ -65,22 +65,7 @@ fn run_file(path: &str) {
 fn run(source: &str) -> InterpretResult {
     let mut vm = VirtualMachine::init_virtual_machine();
     let mut chunk = Chunk::init_chunk();
-    let const_index = chunk.add_constant(4.3);//write to value array
-    chunk.write_chunk(Opcode::OP_CONSTANT as u8, 1); // write bytecode as constant
-    chunk.write_chunk(const_index as u8, 1);// prev bytecode operand
-    chunk.write_chunk(Opcode::OP_NEGATE as u8, 1);
-    //addition
-    let const_index = chunk.add_constant(4.3);//write to value array
-    chunk.write_chunk(Opcode::OP_CONSTANT as u8, 1); // write bytecode as constant
-    chunk.write_chunk(const_index as u8, 1);// prev bytecode operand
-    let const_index = chunk.add_constant(4.3);//write to value array
-    chunk.write_chunk(Opcode::OP_CONSTANT as u8, 1); // write bytecode as constant
-    chunk.write_chunk(const_index as u8, 1);// prev bytecode operand
-    chunk.write_chunk(Opcode::OP_ADD as u8, 1);
-
-    chunk.write_chunk(Opcode::OP_RETURN as u8, 2);
-    //disassemble_chunk(&chunk, "test chunk");
     vm.interpret(source, &mut chunk);
-    //compiler::compile(source);
+    //disassemble_chunk(&chunk, "test chunk");
     InterpretResult::INTERPRET_OK
 }

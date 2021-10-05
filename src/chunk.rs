@@ -14,6 +14,13 @@ pub enum Opcode {
     OP_SUBTRACT = 4,
     OP_MULTIPLY = 5,
     OP_DIVIDE = 6,
+    OP_NIL = 7,
+    OP_TRUE = 8,
+    OP_FALSE = 9,
+    OP_NOT = 10,
+    OP_EQUAL = 11,
+    OP_GREATER = 12,
+    OP_LESS = 13,
 }
 
 impl TryFrom<u8> for Opcode {
@@ -27,6 +34,13 @@ impl TryFrom<u8> for Opcode {
             val if val == Opcode::OP_SUBTRACT as u8 => Ok(Opcode::OP_SUBTRACT),
             val if val == Opcode::OP_MULTIPLY as u8 => Ok(Opcode::OP_MULTIPLY),
             val if val == Opcode::OP_DIVIDE as u8 => Ok(Opcode::OP_DIVIDE),
+            val if val == Opcode::OP_NIL as u8 => Ok(Opcode::OP_NIL),
+            val if val == Opcode::OP_TRUE as u8 => Ok(Opcode::OP_TRUE),
+            val if val == Opcode::OP_FALSE as u8 => Ok(Opcode::OP_FALSE),
+            val if val == Opcode::OP_NOT as u8 => Ok(Opcode::OP_NOT),
+            val if val == Opcode::OP_EQUAL as u8 => Ok(Opcode::OP_EQUAL),
+            val if val == Opcode::OP_GREATER as u8 => Ok(Opcode::OP_GREATER),
+            val if val == Opcode::OP_LESS as u8 => Ok(Opcode::OP_LESS),
             _ => Err(())
         }
     }

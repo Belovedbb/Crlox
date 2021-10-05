@@ -28,6 +28,13 @@ fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
         Ok(Opcode::OP_MULTIPLY) => simple_instruction("OP_MULTIPLY", offset),
         Ok(Opcode::OP_SUBTRACT) => simple_instruction("OP_SUBTRACT", offset),
         Ok(Opcode::OP_DIVIDE) => simple_instruction("OP_DIVIDE", offset),
+        Ok(Opcode::OP_NIL) => simple_instruction("OP_NIL", offset),
+        Ok(Opcode::OP_TRUE) => simple_instruction("OP_TRUE", offset),
+        Ok(Opcode::OP_FALSE) => simple_instruction("OP_FALSE", offset),
+        Ok(Opcode::OP_NOT) => simple_instruction("OP_NOT", offset),
+        Ok(Opcode::OP_EQUAL) => simple_instruction("OP_EQUAL", offset),
+        Ok(Opcode::OP_GREATER) => simple_instruction("OP_GREATER", offset),
+        Ok(Opcode::OP_LESS) => simple_instruction("OP_LESS", offset),
         _ => offset + 1
     }
 }

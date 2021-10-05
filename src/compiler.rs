@@ -1,10 +1,9 @@
 
 use crate::scanner::{Token, TokenType};
 use crate::chunk::{Chunk, Opcode};
-use crate::value::Value;
+use crate::value::{Value};
 use super::scanner::Scanner;
 use crate::parser::{Precedence, get_rule};
-
 
 
 pub struct Compiler<'a> {

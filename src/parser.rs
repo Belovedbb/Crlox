@@ -1,9 +1,11 @@
 use crate::{chunk::Opcode, compiler::Compiler, scanner::TokenType};
+use crate::value::{ValueType, Value, AsValue};
 
 
 type ParseType = fn(&mut Compiler<'_>) -> ();
 
 #[derive(Clone, Copy)]
+#[allow(unused)]
 #[allow(non_camel_case_types)]
 pub enum Precedence {
     PREC_NONE = 0,
@@ -128,15 +130,15 @@ pub fn get_rule(token_type: &TokenType) -> ParseRule {
         TokenType::NOT => {
             ParseRule {
                 precedence: Precedence::PREC_NONE,
-                prefix: None,
+                prefix: Some(parse_unary),
                 infix: None
             }
         },
         TokenType::NOT_EQUAL => {
             ParseRule {
-                precedence: Precedence::PREC_NONE,
+                precedence: Precedence::PREC_EQUAL,
                 prefix: None,
-                infix: None
+                infix: Some(parse_binary)
             }
         },
         TokenType::EQUAL => {
@@ -148,37 +150,37 @@ pub fn get_rule(token_type: &TokenType) -> ParseRule {
         },
         TokenType::EQUAL_EQUAL => {
             ParseRule {
-                precedence: Precedence::PREC_NONE,
+                precedence: Precedence::PREC_EQUAL,
                 prefix: None,
-                infix: None
+                infix: Some(parse_binary)
             }
         },
         TokenType::GREATER => {
             ParseRule {
-                precedence: Precedence::PREC_NONE,
+                precedence: Precedence::PREC_COMPARISON,
                 prefix: None,
-                infix: None
+                infix: Some(parse_binary)
             }
         },
         TokenType::GREATER_EQUAL => {
             ParseRule {
-                precedence: Precedence::PREC_NONE,
+                precedence: Precedence::PREC_COMPARISON,
                 prefix: None,
-                infix: None
+                infix: Some(parse_binary)
             }
         },
         TokenType::LESS => {
             ParseRule {
-                precedence: Precedence::PREC_NONE,
+                precedence: Precedence::PREC_COMPARISON,
                 prefix: None,
-                infix: None
+                infix: Some(parse_binary)
             }
         },
         TokenType::LESS_EQUAL => {
             ParseRule {
-                precedence: Precedence::PREC_NONE,
+                precedence: Precedence::PREC_COMPARISON,
                 prefix: None,
-                infix: None
+                infix: Some(parse_binary)
             }
         },
         TokenType::IDENTIFIER => {
@@ -219,7 +221,7 @@ pub fn get_rule(token_type: &TokenType) -> ParseRule {
         TokenType::FALSE => {
             ParseRule {
                 precedence: Precedence::PREC_NONE,
-                prefix: None,
+                prefix: Some(parse_literal),
                 infix: None
             }
         },
@@ -247,7 +249,7 @@ pub fn get_rule(token_type: &TokenType) -> ParseRule {
         TokenType::NIL => {
             ParseRule {
                 precedence: Precedence::PREC_NONE,
-                prefix: None,
+                prefix: Some(parse_literal),
                 infix: None
             }
         },
@@ -289,7 +291,7 @@ pub fn get_rule(token_type: &TokenType) -> ParseRule {
         TokenType::TRUE => {
             ParseRule {
                 precedence: Precedence::PREC_NONE,
-                prefix: None,
+                prefix: Some(parse_literal),
                 infix: None
             }
         },
@@ -336,6 +338,12 @@ fn parse_binary(compiler: &mut Compiler) -> () {
         TokenType::MINUS => compiler.emit_byte(TokenType::MINUS as u8),
         TokenType::STAR => compiler.emit_byte(TokenType::STAR as u8),
         TokenType::SLASH => compiler.emit_byte(TokenType::SLASH as u8),
+        TokenType::NOT_EQUAL => compiler.emit_bytes( TokenType::EQUAL as u8, TokenType::NOT as u8),
+        TokenType::EQUAL_EQUAL => compiler.emit_byte(TokenType::EQUAL as u8),
+        TokenType::GREATER => compiler.emit_byte(TokenType::GREATER as u8),
+        TokenType::GREATER_EQUAL => compiler.emit_bytes( TokenType::LESS as u8, TokenType::NOT as u8),
+        TokenType::LESS => compiler.emit_byte( TokenType::LESS as u8),
+        TokenType::LESS_EQUAL => compiler.emit_bytes( TokenType::GREATER as u8, TokenType::NOT as u8),
         _ => ()
     }
 }
@@ -347,13 +355,24 @@ fn parse_grouping(compiler: &mut Compiler) -> () {
 }
 
 fn parse_number(compiler: &mut Compiler) -> ()  {
-    compiler.emit_constant(compiler.get_prev().get_sized_content().parse::<f64>().unwrap());
+    let val = compiler.get_prev().get_sized_content().parse::<f64>().unwrap();
+    compiler.emit_constant(number_val!(val));
 }
 
 fn parse_unary(compiler: &mut Compiler) -> () {
     compiler.expression();
     match *compiler.get_prev().get_type() {
         TokenType::MINUS => compiler.emit_byte(Opcode::OP_NEGATE as u8),
+        TokenType::NOT => compiler.emit_byte(Opcode::OP_NOT as u8),
+        _ => ()
+    }
+}
+
+fn parse_literal(compiler: &mut Compiler) -> () {
+    match *compiler.get_prev().get_type() {
+        TokenType::FALSE => compiler.emit_byte(TokenType::FALSE as u8),
+        TokenType::TRUE => compiler.emit_byte(TokenType::TRUE as u8),
+        TokenType::NIL => compiler.emit_byte(TokenType::NIL as u8),
         _ => ()
     }
 }

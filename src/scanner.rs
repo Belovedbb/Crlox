@@ -52,7 +52,7 @@ impl<'a> Token<'a> {
     }
 
     pub fn get_sized_content(&self) -> &str {
-        self.content.get(self.content_start..self.content_len).unwrap()
+        self.content.get(self.content_start..(self.content_start + self.content_len)).unwrap()
     }
 
     pub fn set_line(&mut self, line: usize)  {
