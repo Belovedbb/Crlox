@@ -53,7 +53,7 @@ impl<'a> VirtualMachine<'a> {
             return InterpretResult::INTERPRET_COMPILE_ERROR;
         }
         self.chunk = Some(chunk);
-        let res = self.run();
+        self.run()
     }
 
     // pub fn interpret_(&mut self, content: &str) -> InterpretResult {

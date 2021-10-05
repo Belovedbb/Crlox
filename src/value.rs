@@ -1,6 +1,7 @@
 #![macro_use]
 
 #[derive(PartialEq, Clone, Copy)]
+#[allow(non_camel_case_types)]
 pub enum ValueType {
     VAL_BOOLEAN,
     VAL_NIL,
@@ -125,19 +126,6 @@ pub struct ValueArray {
 impl ValueArray {
 
     pub fn init_value() -> Self {
-        boolean_val!(true);
-        nill!();
-        let x = number_val!(64.3);
-        let a = as_number!(x);
-        let x = boolean_val!(false);
-        if is_boolean!(x) {
-            let a = as_boolean!(x);
-        }else if is_number!(x) {
-
-        }else if is_nill!(x) {
-
-        }
-        
         ValueArray {
             values: Vec::new()
         }

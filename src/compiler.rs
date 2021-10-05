@@ -48,7 +48,8 @@ impl <'a> Compiler<'a>  {
         if *self.current.get_type() == *token_type {
             self.advance();
         }
-        self.error_at_current(&String::from(self.current.get_sized_content()));
+        let message = format!("{} - {}", self.current.get_sized_content(), message);
+        self.error_at_current(&message);
     }
 
     pub fn parse_precedence(&mut self, precedence: &Precedence) {
@@ -74,10 +75,10 @@ impl <'a> Compiler<'a>  {
         self.emit_bytes(Opcode::OP_CONSTANT as u8, index as u8)
     }
 
-    pub fn make_constant(&mut self, value: Value) -> u8 {
-        let index = self.chunk.add_constant(value);
-        index as u8
-    }
+    // pub fn make_constant(&mut self, value: Value) -> u8 {
+    //     let index = self.chunk.add_constant(value);
+    //     index as u8
+    // }
 
     pub fn end_compiler(&mut self) {
         self.emit_return()

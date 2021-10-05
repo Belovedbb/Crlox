@@ -8,7 +8,6 @@ mod scanner;
 mod parser;
 
 use chunk::Chunk;
-use chunk::Opcode;
 use vm::InterpretResult;
 use vm::VirtualMachine;
 use std::{env, io, fs};
