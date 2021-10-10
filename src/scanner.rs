@@ -30,7 +30,7 @@ impl<'a> Token<'a> {
     pub fn  init_token(content: &'a str) -> Self {
         Token {
             line: 0,
-            content: content,
+            content,
             content_len: 0,
             content_start: 0,
             type_: TokenType::ERROR
@@ -80,7 +80,7 @@ pub struct Scanner<'a> {
 impl<'a> Scanner<'a> {
 
     pub fn init_scanner(content: &'a str) -> Self {
-        Scanner { line: 1, content: content, current: 0, start: 0 }
+        Scanner { line: 1, content, current: 0, start: 0 }
     }
 
     fn make_token(&self, kind: TokenType) -> Token<'a> {

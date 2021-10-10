@@ -6,6 +6,7 @@ mod compiler;
 mod vm;
 mod scanner;
 mod parser;
+mod object;
 
 use chunk::Chunk;
 use vm::InterpretResult;

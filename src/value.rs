@@ -1,27 +1,37 @@
 #![macro_use]
+use crate::object::Obj;
 
 #[derive(PartialEq, Clone, Copy)]
 #[allow(non_camel_case_types)]
 pub enum ValueType {
     VAL_BOOLEAN,
     VAL_NIL,
-    VAL_NUMBER
+    VAL_NUMBER,
+    VAL_OBJ
 }
-#[derive(Clone, Copy)]
+
+#[derive(Clone)]
 pub struct AsValue {
     pub boolean: Option<bool>,
-    pub number: Option<f64>
+    pub number: Option<f64>,
+    pub obj: Option<Box<dyn Obj>>
 }
 
 impl AsValue {
+
     pub fn get_boolean_ref(&self) -> &Option<bool> {
         &self.boolean
     }
     pub fn get_number_ref(&self) -> &Option<f64> {
         &self.number
     }
+
+    pub fn get_obj_ref(&self) -> &Option<Box<dyn Obj>> {
+        &self.obj
+    }
 }
-#[derive(Clone, Copy)]
+
+#[derive(Clone)]
 pub struct Value {
     pub type_: ValueType,
     pub as_: AsValue
@@ -44,6 +54,7 @@ macro_rules! boolean_val {
                 type_: ValueType::VAL_BOOLEAN,
                 as_: AsValue {
                     boolean: Some($a),
+                    obj: None, 
                     number: None
                 }
             }
@@ -58,6 +69,7 @@ macro_rules! nill {
                 type_: ValueType::VAL_NIL,
                 as_: AsValue {
                     boolean: None,
+                    obj: None,
                     number: None
                 }
             }
@@ -72,7 +84,23 @@ macro_rules! number_val {
                 type_: ValueType::VAL_NUMBER,
                 as_: AsValue {
                     boolean: None,
+                    obj: None,
                     number: Some($a)
+                }
+            }
+        }
+    };
+}
+
+macro_rules! obj_val {
+    ($a: expr) => {
+        {
+            Value {
+                type_: ValueType::VAL_OBJ,
+                as_: AsValue {
+                    boolean: None,
+                    number: None
+                    obj: Some($a)
                 }
             }
         }
@@ -91,6 +119,14 @@ macro_rules! as_boolean {
     ($a: expr) => {
         {
             (*(*$a.get_as_ref()).get_boolean_ref()).unwrap()
+        }
+    };
+}
+
+macro_rules! as_obj {
+    ($a: expr) => {
+        {
+            (*(*$a.get_as_ref()).get_obj_ref()).clone().unwrap()
         }
     };
 }
@@ -115,6 +151,14 @@ macro_rules! is_nill {
     ($a: expr) => {
         {
             $a.type_ == ValueType::VAL_NIL
+        }
+    };
+}
+
+macro_rules! is_obj {
+    ($a: expr) => {
+        {
+            $a.type_ == ValueType::VAL_OBJ
         }
     };
 }
@@ -148,7 +192,8 @@ impl ValueArray {
                     println!("false");
                 },
             ValueType::VAL_NIL => println!("nill"),
-            ValueType::VAL_NUMBER => println!("{}", as_number!(value))
+            ValueType::VAL_NUMBER => println!("{}", as_number!(value)),
+            _ => ()
         }
         
     }

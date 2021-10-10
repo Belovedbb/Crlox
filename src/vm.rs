@@ -5,7 +5,7 @@ pub(crate) use crate::value::{Value, ValueArray, ValueType, AsValue};
 use crate::debug::{disassemble_chunk};
 use crate::chunk::{Chunk, Opcode};
 
-const STACK_MAX: usize = 254;
+const STACK_MAX: usize = 256;
 
 #[allow(dead_code, non_camel_case_types)]
 pub enum InterpretResult {
@@ -15,7 +15,7 @@ pub enum InterpretResult {
 }
 pub struct VirtualMachine<'a> {
     chunk: Option<&'a Chunk>,
-    stack: [Value;STACK_MAX],
+    stack: Vec<Value>,
     stack_top: usize,
     ip: usize
 }
@@ -25,7 +25,7 @@ impl<'a> VirtualMachine<'a> {
     pub fn init_virtual_machine() -> Self {
         VirtualMachine {
             chunk: None,
-            stack: [number_val!(0.0);STACK_MAX],
+            stack: Vec::with_capacity(STACK_MAX),
             stack_top: 0,
             ip: 0
         }
@@ -38,7 +38,8 @@ impl<'a> VirtualMachine<'a> {
 
     pub fn pop(&mut self) -> Value {
         self.stack_top -= 1;
-        self.stack[self.stack_top]
+        let self_stack = self.stack.clone();
+        self_stack[self.stack_top].clone()
     }
 
     pub fn peek(&mut self, dist: usize) -> &Value {
@@ -70,7 +71,7 @@ impl<'a> VirtualMachine<'a> {
             ValueArray::print_value(&self.stack[i]);
             print!("]")
         }
-        println!("");
+        println!();
         disassemble_chunk(&self.chunk.unwrap(), "test chunk");
         let mut p = self.ip;
         let mut read_ip_increment = || { 
@@ -94,7 +95,7 @@ impl<'a> VirtualMachine<'a> {
                             None => Some(&number_val!(0.0))
                         }.unwrap();
                         ValueArray::print_value(constant);
-                        self.push(*constant);
+                        self.push((*constant).clone());
                         InterpretResult::INTERPRET_OK
                     },
                     Ok(Opcode::OP_NEGATE) => {
@@ -208,7 +209,8 @@ impl<'a> VirtualMachine<'a> {
         match *a.get_type_ref() {
             ValueType::VAL_BOOLEAN => as_boolean!(a) == as_boolean!(b),
             ValueType::VAL_NIL => true,
-            ValueType::VAL_NUMBER => as_number!(a) == as_number!(b)
+            ValueType::VAL_NUMBER => as_number!(a) == as_number!(b),
+            _ => false
             
         }
     }

@@ -15,7 +15,7 @@ pub struct Compiler<'a> {
     panic_mode: bool
 }
 
-impl <'a> Compiler<'a>  {
+impl<'a> Compiler<'a>  {
 
     pub fn get_prev(&self) -> &Token {
         &self.prev
@@ -25,8 +25,8 @@ impl <'a> Compiler<'a>  {
         Compiler { 
             current: Token::init_token(""),
             prev: Token::init_token(""),
-            chunk: chunk,
-            scanner: scanner,
+            chunk,
+            scanner,
             had_error: false,
             panic_mode: false
      }
