@@ -1,5 +1,6 @@
 #![macro_use]
-use crate::object::Obj;
+use crate::object::{Obj, ObjType, ObjString};
+
 
 #[derive(PartialEq, Clone, Copy)]
 #[allow(non_camel_case_types)]
@@ -99,7 +100,7 @@ macro_rules! obj_val {
                 type_: ValueType::VAL_OBJ,
                 as_: AsValue {
                     boolean: None,
-                    number: None
+                    number: None,
                     obj: Some($a)
                 }
             }
@@ -163,6 +164,52 @@ macro_rules! is_obj {
     };
 }
 
+// get object type
+#[allow(unused_macros)]
+macro_rules! obj_type {
+    ($x: expr) => {
+        {
+            *as_obj!($x).get_type()
+        }
+    };
+}
+
+//is string type
+macro_rules! is_str {
+    ($value: expr) => {
+        {
+            is_obj_type(&$value, &ObjType::OBJ_STRING)
+        }
+    };
+}
+
+pub fn is_obj_type(value: &Value, type_: &ObjType) -> bool {
+    is_obj!(*value) && *as_obj!(*value).get_type() == *type_
+}
+
+//convert value to string object
+macro_rules! as_str {
+    ($value: expr) => {
+        {
+            let generic_val: Box<dyn Obj> = as_obj!($value);
+            let res: ObjString = match generic_val.downcast_ref::<ObjString>() {
+                Some(ele) => (*ele).clone(),
+                None => panic!("error")
+            };
+            res
+        }
+    };
+}
+
+//convert value to string 
+macro_rules! as_str_raw {
+    ($value: expr) => {
+        {
+            as_str!($value).get_string()
+        }
+    };
+}
+
 pub struct ValueArray {
     values: Vec<Value>
 }
@@ -183,6 +230,12 @@ impl ValueArray {
         &self.values
     }
 
+    fn print_obj(value: &Value) {
+        match *as_obj!(*value).get_type() {
+            ObjType::OBJ_STRING => println!("{}", as_str_raw!(*value))
+        }
+    }
+
     pub fn print_value(value: &Value) {
         match *value.get_type_ref() {
             ValueType::VAL_BOOLEAN =>
@@ -193,9 +246,7 @@ impl ValueArray {
                 },
             ValueType::VAL_NIL => println!("nill"),
             ValueType::VAL_NUMBER => println!("{}", as_number!(value)),
-            _ => ()
+            ValueType::VAL_OBJ => ValueArray::print_obj(value)
         }
-        
     }
-
 }

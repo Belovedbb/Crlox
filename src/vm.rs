@@ -1,9 +1,10 @@
 use std::{convert::TryInto};
 use crate::compiler::Compiler;
 use crate::scanner::Scanner;
-pub(crate) use crate::value::{Value, ValueArray, ValueType, AsValue};
+pub(crate) use crate::value::{Value, ValueArray, ValueType, AsValue, is_obj_type};
 use crate::debug::{disassemble_chunk};
 use crate::chunk::{Chunk, Opcode};
+use crate::object::{ObjString, Obj, ObjType};
 
 const STACK_MAX: usize = 256;
 
@@ -108,14 +109,19 @@ impl<'a> VirtualMachine<'a> {
                         InterpretResult::INTERPRET_OK
                     },
                     Ok(Opcode::OP_ADD) => {
-                        if !is_number!(*self.peek(0)) ||  !is_number!(*self.peek(1)) {
+                        if is_str!(*self.peek(0)) && is_str!(*self.peek(1)) {
+                            self.concatenate();
+                            InterpretResult::INTERPRET_OK
+                        }
+                        else if is_number!(*self.peek(0)) &&  is_number!(*self.peek(1)) {
+                            let b = self.pop();
+                            let a = self.pop();
+                            self.push(number_val!(as_number!(a) + as_number!(b)));
+                            InterpretResult::INTERPRET_OK
+                        }else {
                             self.runtime_error("Operands must be a number");
                             return InterpretResult::INTERPRET_RUNTIME_ERROR;
                         }
-                        let b = self.pop();
-                        let a = self.pop();
-                        self.push(number_val!(as_number!(a) + as_number!(b)));
-                        InterpretResult::INTERPRET_OK
                     },
                     Ok(Opcode::OP_MULTIPLY) => {
                         if !is_number!(*self.peek(0)) ||  !is_number!(*self.peek(1)) {
@@ -202,6 +208,14 @@ impl<'a> VirtualMachine<'a> {
         is_nill!(value) || (is_boolean!(value) && !as_boolean!(value))
     }
 
+    fn concatenate(&mut self) {
+        let b_ = String::from(as_str_raw!(self.pop()));
+        let a_ = String::from(as_str_raw!(self.pop()));
+        let res_= format!("{}{}", a_, b_);
+        let obj_res = ObjString::from(res_);
+        self.push(obj_val!(Box::from(obj_res)))
+    }
+
     fn values_equal(&self, a: Value, b: Value) -> bool {
         if *a.get_type_ref() != *a.get_type_ref(){
             return false;
@@ -210,7 +224,11 @@ impl<'a> VirtualMachine<'a> {
             ValueType::VAL_BOOLEAN => as_boolean!(a) == as_boolean!(b),
             ValueType::VAL_NIL => true,
             ValueType::VAL_NUMBER => as_number!(a) == as_number!(b),
-            _ => false
+            ValueType::VAL_OBJ => {
+                let a = String::from(as_str_raw!(a));
+                let b = String::from(as_str_raw!(b));
+                a == b
+            }
             
         }
     }

@@ -1,9 +1,11 @@
-use crate::value::{Value, ValueType};
+use mopa::{Any, mopafy};
 
 
-pub trait  Obj: ObjClone  {
+pub trait  Obj: ObjClone + Any  {
     fn get_type(&self) -> &ObjType;
 }
+
+mopafy!(Obj);
 
 pub trait ObjClone {
     fn clone_box(&self) -> Box<dyn Obj>;
@@ -27,43 +29,11 @@ pub enum ObjType {
     OBJ_STRING
 }
 
-// get object type
-macro_rules! obj_type {
-    ($x: expr) => {
-        {
-            *as_obj!($x).get_type()
-        }
-    };
-}
-
-//is string type
-macro_rules! is_str {
-    ($value: expr) => {
-        {
-            is_obj_type(&$value, &ObjType::OBJ_STRING)
-        }
-    };
-}
-
-pub fn is_obj_type(value: &Value, type_: &ObjType) -> bool {
-    is_obj!(*value) && *as_obj!(*value).get_type() == *type_
-}
-
-//convert value to string
-macro_rules! as_str {
-    ($value: expr) => {
-        {
-            *as_obj!(*value) as ObjString
-        }
-    };
-}
-
 #[derive(Clone)]
 pub struct ObjString {
     obj: ObjType,
     string: String
 }
-
 
 impl From<String> for ObjString {
     fn from(string: String) -> Self {
@@ -77,5 +47,11 @@ impl From<String> for ObjString {
 impl Obj for ObjString {
     fn get_type(&self) -> &ObjType {
         &self.obj
+    }
+}
+
+impl ObjString {
+    pub fn get_string(&self) -> &str {
+        &self.string
     }
 }

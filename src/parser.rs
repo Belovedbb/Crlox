@@ -1,3 +1,4 @@
+use crate::object::ObjString;
 use crate::{chunk::Opcode, compiler::Compiler, scanner::TokenType};
 use crate::value::{ValueType, Value, AsValue};
 
@@ -193,7 +194,7 @@ pub fn get_rule(token_type: &TokenType) -> ParseRule {
         TokenType::STRING => {
             ParseRule {
                 precedence: Precedence::PREC_NONE,
-                prefix: None,
+                prefix: Some(parse_string),
                 infix: None
             }
         },
@@ -375,4 +376,11 @@ fn parse_literal(compiler: &mut Compiler) -> () {
         TokenType::NIL => compiler.emit_byte(TokenType::NIL as u8),
         _ => ()
     }
+}
+
+fn parse_string(compiler: &mut Compiler) -> () {
+    let val = compiler.get_prev().get_sized_content();
+    let val = &val[1..val.len() - 1];//to trim ""
+    let obj_str = ObjString::from(String::from(val));
+    compiler.emit_constant(obj_val!(Box::from(obj_str)))
 }

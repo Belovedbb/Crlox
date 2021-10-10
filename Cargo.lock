@@ -5,3 +5,12 @@ version = 3
 [[package]]
 name = "crlox"
 version = "0.1.0"
+dependencies = [
+ "mopa",
+]
+
+[[package]]
+name = "mopa"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a785740271256c230f57462d3b83e52f998433a7062fc18f96d5999474a9f915"
