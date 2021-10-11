@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{convert::TryInto};
 use crate::compiler::Compiler;
 use crate::scanner::Scanner;
@@ -18,6 +19,7 @@ pub struct VirtualMachine<'a> {
     chunk: Option<&'a Chunk>,
     stack: Vec<Value>,
     stack_top: usize,
+    strings: HashMap<ObjString, Value>,
     ip: usize
 }
 
@@ -28,6 +30,7 @@ impl<'a> VirtualMachine<'a> {
             chunk: None,
             stack: Vec::with_capacity(STACK_MAX),
             stack_top: 0,
+            strings: HashMap::new(),
             ip: 0
         }
     }
