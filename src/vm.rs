@@ -15,11 +15,13 @@ pub enum InterpretResult {
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR
 }
+#[allow(dead_code)]
 pub struct VirtualMachine<'a> {
     chunk: Option<&'a Chunk>,
     stack: Vec<Value>,
     stack_top: usize,
     strings: HashMap<ObjString, Value>,
+    globals: HashMap<ObjString, Value>,
     ip: usize
 }
 
@@ -31,12 +33,13 @@ impl<'a> VirtualMachine<'a> {
             stack: Vec::with_capacity(STACK_MAX),
             stack_top: 0,
             strings: HashMap::new(),
+            globals: HashMap::new(),
             ip: 0
         }
     }
 
     pub fn push(&mut self, value: Value) {
-        self.stack[self.stack_top] = value;
+        self.stack.push(value);
         self.stack_top += 1;
     }
 
@@ -69,6 +72,7 @@ impl<'a> VirtualMachine<'a> {
         *chunk.unwrap().get_code().get(read_ip()).unwrap()
     }
 
+    #[allow(mutable_borrow_reservation_conflict)]
     pub fn run(&mut self) -> InterpretResult {
         for i in 0..self.stack_top {
             print!("[");
@@ -89,14 +93,13 @@ impl<'a> VirtualMachine<'a> {
             {
                 match instruction.try_into() {
                     Ok(Opcode::OP_RETURN) => {
-                        ValueArray::print_value(&self.pop());
                         return InterpretResult::INTERPRET_OK
                     },
                     Ok(Opcode::OP_CONSTANT) => {
                         let constant: &Value = match self.chunk {
                             Some(ch) => ch.get_constants().get_values()
                             .get(VirtualMachine::inc_fn(self.chunk, &mut read_ip_increment) as usize),
-                            None => Some(&number_val!(0.0))
+                            None => Some(&nill!())
                         }.unwrap();
                         ValueArray::print_value(constant);
                         self.push((*constant).clone());
@@ -199,6 +202,61 @@ impl<'a> VirtualMachine<'a> {
                         let b = self.pop();
                         let a = self.pop();
                         self.push(boolean_val!(as_number!(a) < as_number!(b)));
+                        InterpretResult::INTERPRET_OK
+                    },
+                    Ok(Opcode::OP_PRINT) => {
+                        ValueArray::print_value(&self.pop());
+                        println!();
+                        InterpretResult::INTERPRET_OK
+                    },
+                    Ok(Opcode::OP_POP) => {
+                        self.pop();
+                        InterpretResult::INTERPRET_OK
+                    },
+                    Ok(Opcode::OP_DEFINE_GLOBAL) => {
+                        let constant: &Value = match self.chunk {
+                            Some(ch) => ch.get_constants().get_values()
+                            .get(VirtualMachine::inc_fn(self.chunk, &mut read_ip_increment) as usize),
+                            None => Some(&nill!())
+                        }.unwrap();
+                        let name: ObjString = as_str!(*constant);
+                        let val = self.peek(0).clone();
+                        self.globals.insert(name, val);
+                        self.pop();
+                        InterpretResult::INTERPRET_OK
+                    },
+                    Ok(Opcode::OP_GET_GLOBAL) => {
+                        let constant: &Value = match self.chunk {
+                            Some(ch) => ch.get_constants().get_values()
+                            .get(VirtualMachine::inc_fn(self.chunk, &mut read_ip_increment) as usize),
+                            None => Some(&nill!())
+                        }.unwrap();
+                        let name: ObjString = as_str!(*constant);
+                        let val = self.globals.get(&name);
+                        match val {
+                            Some(res) => self.push(res.clone()),
+                            None => {
+                                self.runtime_error(&format!("Undefined Variable {}", name.get_string()));
+                                return InterpretResult::INTERPRET_RUNTIME_ERROR;
+                            }
+                        }
+                        InterpretResult::INTERPRET_OK
+                    },
+                    Ok(Opcode::OP_SET_GLOBAL) => {
+                        let constant: &Value = match self.chunk {
+                            Some(ch) => ch.get_constants().get_values()
+                            .get(VirtualMachine::inc_fn(self.chunk, &mut read_ip_increment) as usize),
+                            None => Some(&nill!())
+                        }.unwrap();
+                        let name: ObjString = as_str!(*constant);
+                        let key_exist = self.globals.contains_key(&name);
+                        if key_exist {
+                            let cur_val = self.peek(0).clone();
+                            self.globals.insert(name, cur_val);
+                        } else {
+                            self.runtime_error(&format!("Undefined Variable {}", name.get_string()));
+                            return InterpretResult::INTERPRET_RUNTIME_ERROR;
+                        }
                         InterpretResult::INTERPRET_OK
                     },
                     _ => return InterpretResult::INTERPRET_COMPILE_ERROR

@@ -21,6 +21,12 @@ pub enum Opcode {
     OP_EQUAL = 11,
     OP_GREATER = 12,
     OP_LESS = 13,
+    OP_PRINT = 14,
+    OP_POP = 15,
+    OP_DEFINE_GLOBAL = 16,
+    OP_GET_GLOBAL = 17,
+    OP_SET_GLOBAL = 18,
+
 }
 
 impl TryFrom<u8> for Opcode {
@@ -41,6 +47,11 @@ impl TryFrom<u8> for Opcode {
             val if val == Opcode::OP_EQUAL as u8 => Ok(Opcode::OP_EQUAL),
             val if val == Opcode::OP_GREATER as u8 => Ok(Opcode::OP_GREATER),
             val if val == Opcode::OP_LESS as u8 => Ok(Opcode::OP_LESS),
+            val if val == Opcode::OP_PRINT as u8 => Ok(Opcode::OP_PRINT),
+            val if val == Opcode::OP_POP as u8 => Ok(Opcode::OP_POP),
+            val if val == Opcode::OP_DEFINE_GLOBAL as u8 => Ok(Opcode::OP_DEFINE_GLOBAL),
+            val if val == Opcode::OP_GET_GLOBAL as u8 => Ok(Opcode::OP_GET_GLOBAL),
+            val if val == Opcode::OP_SET_GLOBAL as u8 => Ok(Opcode::OP_SET_GLOBAL),
             _ => Err(())
         }
     }

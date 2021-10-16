@@ -23,13 +23,13 @@ impl Clone for Box<dyn Obj> {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Hash, Eq)]
 #[allow(non_camel_case_types)]
 pub enum ObjType {
     OBJ_STRING
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct ObjString {
     obj: ObjType,
     string: String

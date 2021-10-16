@@ -35,6 +35,11 @@ fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
         Ok(Opcode::OP_EQUAL) => simple_instruction("OP_EQUAL", offset),
         Ok(Opcode::OP_GREATER) => simple_instruction("OP_GREATER", offset),
         Ok(Opcode::OP_LESS) => simple_instruction("OP_LESS", offset),
+        Ok(Opcode::OP_PRINT) => simple_instruction("OP_PRINT", offset),
+        Ok(Opcode::OP_POP) => simple_instruction("OP_POP", offset),
+        Ok(Opcode::OP_DEFINE_GLOBAL) => constant_instruction("OP_DEFINE_GLOBAL", chunk, offset),
+        Ok(Opcode::OP_GET_GLOBAL) => constant_instruction("OP_GET_GLOBAL", chunk, offset),
+        Ok(Opcode::OP_SET_GLOBAL) => constant_instruction("OP_SET_GLOBAL", chunk, offset),
         _ => offset + 1
     }
 }
