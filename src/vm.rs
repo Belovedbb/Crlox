@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::{convert::TryInto};
-use crate::compiler::Compiler;
+use crate::compiler::CompilerParser;
 use crate::scanner::Scanner;
 pub(crate) use crate::value::{Value, ValueArray, ValueType, AsValue, is_obj_type};
 use crate::debug::{disassemble_chunk};
@@ -56,7 +56,7 @@ impl<'a> VirtualMachine<'a> {
     pub fn interpret(&mut self, content: &str, chunk: &'a mut Chunk) -> InterpretResult {
         //let mut chunk = Chunk::init_chunk();
         let mut sc = Scanner::init_scanner(content);
-        let mut compiler = Compiler::init_compiler(&mut sc, chunk);
+        let mut compiler = CompilerParser::init_compiler(&mut sc, chunk);
         if !compiler.compile() {
             return InterpretResult::INTERPRET_COMPILE_ERROR;
         }
@@ -257,6 +257,16 @@ impl<'a> VirtualMachine<'a> {
                             self.runtime_error(&format!("Undefined Variable {}", name.get_string()));
                             return InterpretResult::INTERPRET_RUNTIME_ERROR;
                         }
+                        InterpretResult::INTERPRET_OK
+                    },
+                    Ok(Opcode::OP_GET_LOCAL) => {
+                        let slot = read_ip_increment();
+                        self.push(self.stack.get(slot).unwrap().clone());
+                        InterpretResult::INTERPRET_OK
+                    },
+                    Ok(Opcode::OP_SET_LOCAL) => {
+                        let slot = read_ip_increment();
+                        self.stack[slot] = self.peek(0).clone();
                         InterpretResult::INTERPRET_OK
                     },
                     _ => return InterpretResult::INTERPRET_COMPILE_ERROR

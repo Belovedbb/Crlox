@@ -40,6 +40,8 @@ fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
         Ok(Opcode::OP_DEFINE_GLOBAL) => constant_instruction("OP_DEFINE_GLOBAL", chunk, offset),
         Ok(Opcode::OP_GET_GLOBAL) => constant_instruction("OP_GET_GLOBAL", chunk, offset),
         Ok(Opcode::OP_SET_GLOBAL) => constant_instruction("OP_SET_GLOBAL", chunk, offset),
+        Ok(Opcode::OP_GET_LOCAL) => byte_instruction("OP_GET_LOCAL", chunk, offset),
+        Ok(Opcode::OP_SET_LOCAL) => byte_instruction("OP_SET_LOCAL", chunk, offset),
         _ => offset + 1
     }
 }
@@ -54,5 +56,11 @@ fn constant_instruction(name: &str, chunk: &Chunk, offset: usize) -> usize {
     println!("{} => index {}", name, *constant_index);
     let constant = chunk.get_constants().get_values().get(*constant_index as usize).unwrap();
     ValueArray::print_value(constant);
+    offset + 2
+}
+
+fn byte_instruction(name: &str, chunk: &Chunk, offset: usize) -> usize {
+    let constant_index = chunk.get_code().get(offset + 1).unwrap();
+    println!("{} => index {}", name, *constant_index);
     offset + 2
 }

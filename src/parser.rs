@@ -1,10 +1,10 @@
 use crate::object::ObjString;
 use crate::scanner::Token;
-use crate::{chunk::Opcode, compiler::Compiler, scanner::TokenType};
+use crate::{chunk::Opcode, compiler::CompilerParser, scanner::TokenType};
 use crate::value::{ValueType, Value, AsValue};
 
 
-type ParseType = fn(&mut Compiler<'_>, bool) -> ();
+type ParseType = fn(&mut CompilerParser<'_>, bool) -> ();
 
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
 #[allow(unused)]
@@ -331,7 +331,7 @@ pub fn get_rule(token_type: &TokenType) -> ParseRule {
     }
 }
 
-fn parse_binary(compiler: &mut Compiler, _can_assign: bool) -> () {
+fn parse_binary(compiler: &mut CompilerParser, _can_assign: bool) -> () {
     let op = (*compiler.get_prev().get_type()).clone();
     let rule = get_rule(&op);
     compiler.parse_precedence(&rule.precedence);
@@ -350,33 +350,43 @@ fn parse_binary(compiler: &mut Compiler, _can_assign: bool) -> () {
     }
 }
 
-fn parse_grouping(compiler: &mut Compiler, _can_assign: bool) -> () {
+fn parse_grouping(compiler: &mut CompilerParser, _can_assign: bool) -> () {
     compiler.expression();
     compiler.consume(&TokenType::RIGHT_PAREN, "Expect ')' after expression");
     
 }
 
-fn parse_number(compiler: &mut Compiler, _can_assign: bool) -> ()  {
+fn parse_number(compiler: &mut CompilerParser, _can_assign: bool) -> ()  {
     let val = compiler.get_prev().get_sized_content().parse::<f64>().unwrap();
     compiler.emit_constant(number_val!(val));
 }
 
-fn parse_variable(compiler: &mut Compiler, can_assign: bool) -> () {
+fn parse_variable(compiler: &mut CompilerParser, can_assign: bool) -> () {
     let token_name = compiler.prev.clone();
     named_variable(compiler, &token_name, can_assign);
 }
 
-fn named_variable(compiler: &mut Compiler, name: &Token, can_assign: bool) -> () {
-    let arg = compiler.identifier_constant(name);
+fn named_variable(compiler: &mut CompilerParser, name: &Token, can_assign: bool) -> () {
+    let get_op: Opcode; let set_op: Opcode;
+    let mut arg = compiler.resolve_local( name);
+    if arg != -1 {
+        get_op = Opcode::OP_GET_LOCAL;
+        set_op = Opcode::OP_SET_LOCAL;
+    }else {
+        arg = compiler.identifier_constant(name) as i32;
+        get_op = Opcode::OP_GET_GLOBAL;
+        set_op = Opcode::OP_SET_GLOBAL;
+    }
+
     if can_assign && compiler.match_(TokenType::EQUAL) {
         compiler.expression();
-        compiler.emit_bytes(Opcode::OP_SET_GLOBAL as u8, arg);
+        compiler.emit_bytes(set_op as u8, arg as u8);
     } else {
-        compiler.emit_bytes(Opcode::OP_GET_GLOBAL as u8, arg);
+        compiler.emit_bytes(get_op as u8, arg as u8);
     }
 }
 
-fn parse_unary(compiler: &mut Compiler, _can_assign: bool) -> () {
+fn parse_unary(compiler: &mut CompilerParser, _can_assign: bool) -> () {
     compiler.expression();
     match *compiler.get_prev().get_type() {
         TokenType::MINUS => compiler.emit_byte(Opcode::OP_NEGATE as u8),
@@ -385,7 +395,7 @@ fn parse_unary(compiler: &mut Compiler, _can_assign: bool) -> () {
     }
 }
 
-fn parse_literal(compiler: &mut Compiler, _can_assign: bool) -> () {
+fn parse_literal(compiler: &mut CompilerParser, _can_assign: bool) -> () {
     match *compiler.get_prev().get_type() {
         TokenType::FALSE => compiler.emit_byte(TokenType::FALSE as u8),
         TokenType::TRUE => compiler.emit_byte(TokenType::TRUE as u8),
@@ -394,7 +404,7 @@ fn parse_literal(compiler: &mut Compiler, _can_assign: bool) -> () {
     }
 }
 
-fn parse_string(compiler: &mut Compiler, _can_assign: bool) -> () {
+fn parse_string(compiler: &mut CompilerParser, _can_assign: bool) -> () {
     let val = compiler.get_prev().get_sized_content();
     let val = &val[1..val.len() - 1];//to trim ""
     let obj_str = ObjString::from(String::from(val));

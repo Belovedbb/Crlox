@@ -26,6 +26,8 @@ pub enum Opcode {
     OP_DEFINE_GLOBAL = 16,
     OP_GET_GLOBAL = 17,
     OP_SET_GLOBAL = 18,
+    OP_GET_LOCAL = 19,
+    OP_SET_LOCAL = 20,
 
 }
 
@@ -52,6 +54,8 @@ impl TryFrom<u8> for Opcode {
             val if val == Opcode::OP_DEFINE_GLOBAL as u8 => Ok(Opcode::OP_DEFINE_GLOBAL),
             val if val == Opcode::OP_GET_GLOBAL as u8 => Ok(Opcode::OP_GET_GLOBAL),
             val if val == Opcode::OP_SET_GLOBAL as u8 => Ok(Opcode::OP_SET_GLOBAL),
+            val if val == Opcode::OP_GET_LOCAL as u8 => Ok(Opcode::OP_GET_LOCAL),
+            val if val == Opcode::OP_SET_LOCAL as u8 => Ok(Opcode::OP_SET_LOCAL),
             _ => Err(())
         }
     }
